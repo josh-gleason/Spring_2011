@@ -2,16 +2,20 @@
 #include <cv.h>
 #include <highgui.h>
 #include <cvaux.h>
-#include <cmath>
-#include <iomanip>
 
 using namespace std;
 using namespace cv;
 
-void kerns(int size, Mat &x, Mat &y)
+int roundOdd(float a)
 {
-  float sigma = size/5.;
-  // |x|=|y|=5*sigma
+  int val = int(a+0.5);
+  if (val % 2 == 0)
+    val++;
+  return val;
+}
+
+void kerns(int size, float sigma, Mat &x, Mat &y)
+{
   x.create(1,size,CV_32FC1);
   y.create(size,1,CV_32FC1);
 
@@ -113,64 +117,62 @@ void filter(const Mat &input, Mat &output, const Mat &kern)
     for ( j = 0; j < cols; j++ )
       for ( k = 0; k < kernRows; k++ )
         for ( l = 0; l < kernCols; l++ )
-          output.at<float>(i,j) += kern.at<float>(k,l)*getVal(input,i+k-(kernRows-1)/2.,j+l-(kernCols-1)/2.);
+          output.at<float>(i,j) += kern.at<float>(k,l)*
+            getVal(input,i+k-(kernRows-1)/2.,j+l-(kernCols-1)/2.);
+}
+
+void Blur(const Mat& input, Mat& output, int window, float sigma)
+{
+  output = Mat(input.size(),CV_32FC1);
+  Mat xKern, yKern,temp;
+  kerns(window,sigma,xKern,yKern);
+  filter(input,temp,xKern);
+  filter(temp,output,yKern);
 }
 
 int main(int argc, char *argv[])
 {
-  if ( argc < 5 )
+
+  if ( argc < 2 )
+    cout << "Please enter an image" << endl;
+  
+  Mat img = imread(argv[1],0);
+
+  Mat gaussPyr[6], lapPyr1[5], lapPyr2[5];
+  Mat temp,temp2;
+
+  float kernVals[9] = {-1./8,-1./8,-1./8,
+                       -1./8,  1. ,-1./8,
+                       -1./8,-1./8,-1./8};
+
+  Mat lapKern(3,3,CV_32FC1,(void*)kernVals);
+
+  img.convertTo(gaussPyr[0],CV_32FC1);
+
+  float sigma = 1;
+  int window = roundOdd(5*sigma);
+  
+  // build Gaussian pyramid
+  for ( int i = 0; i < 6; i++ )
   {
-    cout << "Command line arguments are as follows..." << endl
-         << "<windowsize> <input> <output1> <output2>" << endl
-         << "sigma must be an interger value" << endl
-         << "output1 is the input blurred using seperable kernels" << endl
-         << "output2 is the input blurred using OpenCV's GaussianBlur function" << endl;
-    return -1;
+    Blur(gaussPyr[i],gaussPyr[i+1],window,sigma);
   }
 
-  float sigma = atoi(argv[1])/5.;
+  for ( int i = 0; i < 5; i++ )
+  {
+    filter(gaussPyr[i],temp,lapKern);
+    normalize(temp,lapPyr1[i],0.0,255.0,CV_MINMAX);
+    lapPyr2[i] = gaussPyr[i]-gaussPyr[i+1];
+  }
 
-  Mat xKern,yKern,xGauss,smooth,show1,show2,cmp,
-    img = imread(argv[2],0), fImg;
+  for ( int i = 0; i < 5; i++ )
+  {
+    normalize(lapPyr1[i],temp,0.0,255,CV_MINMAX,CV_8UC1);
+    imshow("Image1",temp);
+    normalize(lapPyr2[i],temp,0.0,255,CV_MINMAX,CV_8UC1);
+    imshow("Image2",temp);
+    waitKey(0);
+  }
 
-  // convert to floating point
-  img.convertTo(fImg,CV_32FC1);
-
-  // build kernels
-  kerns(atoi(argv[1]),xKern,yKern);
-
-  // filter image
-  filter(fImg,xGauss,xKern);
-  filter(xGauss,smooth,yKern);
-  
-  // create comparison image
-  if ( (int)(5*sigma) % 2 != 0 )
-    GaussianBlur(img,cmp,cvSize(5*sigma,5*sigma),sigma,sigma,BORDER_CONSTANT);
-  else
-    cmp = smooth;
-
-  // display
-  normalize(smooth,show1,0,255,CV_MINMAX,CV_8UC1);
-  imshow("My Blur",show1);  
-
-  normalize(cmp,show2,0,255,CV_MINMAX,CV_8UC1);
-  imshow("OpenCV's Blur",show2);
-
-  // save results
-  imwrite(argv[3],show1);
-  imwrite(argv[4],show2);
-
-  waitKey(0);
-
-  // calculate mean square error
-
-  float mse = 0.0;
-
-  for ( int i = 0; i < img.rows; i++ )
-    for ( int j = 0; j < img.cols; j++ )
-      mse += pow((float)(show1.at<uchar>(i,j))-(float)(show2.at<uchar>(i,j)),2);
-  mse /= img.rows*img.cols;
-
-  cout << "Mean Square Error: " << mse << endl;
   return 0;
 }

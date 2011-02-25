@@ -1,12 +1,7 @@
-all: family_ugrad family_grad
-
-family_ugrad: family_ugrad.cc
-	g++ family_ugrad.cc -o family_ugrad
-
-family_grad: family_grad.cc
-	g++ family_grad.cc -o family_grad
+family: family.cc
+	g++ family.cc -o family
 
 clean:
-	rm family_grad family_ugrad
+	rm family
 
 .PHONY: clean

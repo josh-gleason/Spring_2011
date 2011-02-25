@@ -1,17 +1,21 @@
-#include <iostream>
 #include <cv.h>
-#include <highgui.h>
 #include <cvaux.h>
-#include <cmath>
-#include <iomanip>
+#include <highgui.h>
+#include <iostream>
 
 using namespace std;
 using namespace cv;
 
-void kerns(int size, Mat &x, Mat &y)
+int roundOdd(float a)
 {
-  float sigma = size/5.;
-  // |x|=|y|=5*sigma
+  int val = int(a+0.5);
+  if (val % 2 == 0)
+    val++;
+  return val;
+}
+
+void kerns(int size, float sigma, Mat &x, Mat &y)
+{
   x.create(1,size,CV_32FC1);
   y.create(size,1,CV_32FC1);
 
@@ -113,64 +117,75 @@ void filter(const Mat &input, Mat &output, const Mat &kern)
     for ( j = 0; j < cols; j++ )
       for ( k = 0; k < kernRows; k++ )
         for ( l = 0; l < kernCols; l++ )
-          output.at<float>(i,j) += kern.at<float>(k,l)*getVal(input,i+k-(kernRows-1)/2.,j+l-(kernCols-1)/2.);
+          output.at<float>(i,j) += kern.at<float>(k,l)*
+            getVal(input,i+k-(kernRows-1)/2.,j+l-(kernCols-1)/2.);
+}
+
+void Blur(const Mat& input, Mat& output, int window, float sigma)
+{
+  output = Mat(input.size(),CV_32FC1);
+  Mat xKern, yKern,temp;
+  kerns(window,sigma,xKern,yKern);
+  filter(input,temp,xKern);
+  filter(temp,output,yKern);
 }
 
 int main(int argc, char *argv[])
 {
-  if ( argc < 5 )
+
+  if ( argc < 2 )
+    cout << "Please enter an image" << endl;
+  
+  Mat img = imread(argv[1],0);
+
+  Mat pyramid1[6];
+  Mat pyramid2[6];
+  Mat showA,showB;
+
+  img.convertTo(pyramid1[0],CV_32FC1);
+
+  pyramid2[0] = pyramid1[0];
+
+  float sigma1 = 1;
+  float sigma2 = sigma1;
+  int window = roundOdd(5*sigma1);
+  
+  for ( int i = 0; i < 5; i++ )
   {
-    cout << "Command line arguments are as follows..." << endl
-         << "<windowsize> <input> <output1> <output2>" << endl
-         << "sigma must be an interger value" << endl
-         << "output1 is the input blurred using seperable kernels" << endl
-         << "output2 is the input blurred using OpenCV's GaussianBlur function" << endl;
-    return -1;
+    Blur(pyramid1[i],pyramid1[i+1],window,sigma1);
   }
 
-  float sigma = atoi(argv[1])/5.;
-
-  Mat xKern,yKern,xGauss,smooth,show1,show2,cmp,
-    img = imread(argv[2],0), fImg;
-
-  // convert to floating point
-  img.convertTo(fImg,CV_32FC1);
-
-  // build kernels
-  kerns(atoi(argv[1]),xKern,yKern);
-
-  // filter image
-  filter(fImg,xGauss,xKern);
-  filter(xGauss,smooth,yKern);
+  for ( int i = 0; i < 5; i++ )
+  {
+    window = roundOdd(5*sigma2*sqrt(i+1));
+    Blur(pyramid2[0],pyramid2[i+1],window,sigma2*sqrt(i+1));
+  }
   
-  // create comparison image
-  if ( (int)(5*sigma) % 2 != 0 )
-    GaussianBlur(img,cmp,cvSize(5*sigma,5*sigma),sigma,sigma,BORDER_CONSTANT);
-  else
-    cmp = smooth;
+  float mse;
+  for ( int index = 0; index < 6; index++ )
+  {
+    mse = 0.0;
 
-  // display
-  normalize(smooth,show1,0,255,CV_MINMAX,CV_8UC1);
-  imshow("My Blur",show1);  
+    // normalize and equalize histograms to compare better
+    normalize(pyramid1[index],showA,0.0,255.0,CV_MINMAX,CV_8UC1);
+    equalizeHist(showA,pyramid1[index]);
 
-  normalize(cmp,show2,0,255,CV_MINMAX,CV_8UC1);
-  imshow("OpenCV's Blur",show2);
+    normalize(pyramid2[index],showB,0.0,255.0,CV_MINMAX,CV_8UC1);
+    equalizeHist(showB,pyramid2[index]);
 
-  // save results
-  imwrite(argv[3],show1);
-  imwrite(argv[4],show2);
+    // calculate mean square error
+    for ( int i = 0; i < pyramid1[index].rows; i++ )
+      for ( int j = 0; j < pyramid2[index].cols; j++ )
+        mse += pow((float)(pyramid1[index].at<uchar>(i,j))-
+                   (float)(pyramid2[index].at<uchar>(i,j)),2);
 
-  waitKey(0);
+    mse /= pyramid1[index].rows*pyramid2[index].cols;
 
-  // calculate mean square error
+    cout << "Mean Square Error Level " << index+1 << ": " << mse << endl;
+    imshow("Method 1",showA);
+    imshow("Method 2",showB);
+    waitKey(0);
+  }
 
-  float mse = 0.0;
-
-  for ( int i = 0; i < img.rows; i++ )
-    for ( int j = 0; j < img.cols; j++ )
-      mse += pow((float)(show1.at<uchar>(i,j))-(float)(show2.at<uchar>(i,j)),2);
-  mse /= img.rows*img.cols;
-
-  cout << "Mean Square Error: " << mse << endl;
   return 0;
 }
