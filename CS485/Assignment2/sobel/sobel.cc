@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
   filter2D(img,imgx,CV_32FC1,kernX);
   filter2D(img,imgy,CV_32FC1,kernY);
-  sqrt(imgx.mul(imgx)+imgy.mul(imgy),mag);
+  mag = abs(imgx)+abs(imgy);
   dir = Mat(img.rows,img.cols,CV_32FC1);
   thresh = Mat(img.rows,img.cols,CV_8UC1);
   float tVal = atoi(argv[2]);

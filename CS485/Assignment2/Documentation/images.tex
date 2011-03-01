@@ -1,0 +1,377 @@
+%\begin{figure}[hbt]
+%  \centering
+%  \label{fig:}
+%  \subfigure[CAP]{
+%    \includegraphics[width=0.4\textwidth]{}
+%  }
+%  \caption{}
+%\end{figure}
+\newcolumntype{S}{>{\centering\arraybackslash} m{0.26\textwidth} }
+
+~\vfill
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:smooth}
+  \subfigure[lenna 5x5]{
+    \includegraphics[height=0.22\textwidth]{../smooth/lenna5.jpg}
+  } 
+  \subfigure[sf 5x5]{
+    \includegraphics[height=0.22\textwidth]{../smooth/sf5.jpg}
+  } 
+  \subfigure[lenna 5x5 OpenCV]{
+    \includegraphics[height=0.22\textwidth]{../smooth/lenna5ocv.jpg}
+  }
+  \subfigure[sf 5x5 OpenCV]{
+    \includegraphics[height=0.22\textwidth]{../smooth/sf5ocv.jpg}
+  }  \\
+  \subfigure[lenna 11x11]{
+    \includegraphics[height=0.22\textwidth]{../smooth/lenna11.jpg}
+  } 
+  \subfigure[sf 11x11]{
+    \includegraphics[height=0.22\textwidth]{../smooth/sf11.jpg}
+  } 
+  \subfigure[lenna 11x11 OpenCV]{
+    \includegraphics[height=0.22\textwidth]{../smooth/lenna11ocv.jpg}
+  } 
+  \subfigure[sf 11x11 OpenCV]{
+    \includegraphics[height=0.22\textwidth]{../smooth/sf11ocv.jpg}
+  }  \\
+  \caption{Smoothing using separable Gaussian blur comparing to OpenCV's GaussianBlur function.}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+	\centering
+	\label{fig:lennagauss}
+  \subfigure[lenna A Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_0.jpg}
+  } 
+  \subfigure[lenna B Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_0.jpg}
+  } 
+  \subfigure[lenna A Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_1.jpg}
+  } 
+  \subfigure[lenna B Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_1.jpg}
+  } \\
+  \subfigure[lenna A Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_2.jpg}
+  } 
+  \subfigure[lenna B Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_2.jpg}
+  } 
+  \subfigure[lenna A Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_3.jpg}
+  } 
+  \subfigure[lenna B Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_3.jpg}
+  } \\
+  \subfigure[lenna A Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_4.jpg}
+  } 
+  \subfigure[lenna B Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_4.jpg}
+  } 
+  \subfigure[lenna A Lvl 6]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaA_5.jpg}
+  } 
+  \subfigure[lenna B Lvl 6]{
+    \includegraphics[height=0.22\textwidth]{../gauss/lennaB_5.jpg}
+  } \\
+	\caption{Comparison of Gaussian Pyramids Using Method A and B on lenna.pgm.}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+	\centering
+	\label{fig:sfgauss}
+  \subfigure[sf A Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_0.jpg}
+  } 
+  \subfigure[sf B Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_0.jpg}
+  } 
+  \subfigure[sf A Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_1.jpg}
+  } 
+  \subfigure[sf B Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_1.jpg}
+  } \\
+  \subfigure[sf A Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_2.jpg}
+  } 
+  \subfigure[sf B Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_2.jpg}
+  } 
+  \subfigure[sf A Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_3.jpg}
+  } 
+  \subfigure[sf B Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_3.jpg}
+  } \\
+  \subfigure[sf A Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_4.jpg}
+  } 
+  \subfigure[sf B Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_4.jpg}
+  } 
+  \subfigure[sf A Lvl 6]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfA_5.jpg}
+  } 
+  \subfigure[sf B Lvl 6]{
+    \includegraphics[height=0.22\textwidth]{../gauss/sfB_5.jpg}
+  } \\
+	\caption{Comparison of Gaussian Pyramids Using Method A and B on sf.pgm.}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+	\centering
+	\label{fig:lennalaplacian}
+  \subfigure[lenna A Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaA_0.jpg}
+  } 
+  \subfigure[lenna B Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaB_0.jpg}
+  } 
+  \subfigure[lenna A Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaA_1.jpg}
+  } 
+  \subfigure[lenna B Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaB_1.jpg}
+  } \\
+  \subfigure[lenna A Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaA_2.jpg}
+  } 
+  \subfigure[lenna B Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaB_2.jpg}
+  } 
+  \subfigure[lenna A Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaA_3.jpg}
+  } 
+  \subfigure[lenna B Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaB_3.jpg}
+  } \\
+  \subfigure[lenna A Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaA_4.jpg}
+  } 
+  \subfigure[lenna B Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/lennaB_4.jpg}
+  } \\
+	\caption{Comparison of Laplacian Pyramids Using Method A and B on lenna.pgm.}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+	\centering
+	\label{fig:sflaplacian}
+  \subfigure[sf A Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfA_0.jpg}
+  } 
+  \subfigure[sf B Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfB_0.jpg}
+  } 
+  \subfigure[sf A Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfA_1.jpg}
+  } 
+  \subfigure[sf B Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfB_1.jpg}
+  } \\
+  \subfigure[sf A Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfA_2.jpg}
+  } 
+  \subfigure[sf B Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfB_2.jpg}
+  } 
+  \subfigure[sf A Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfA_3.jpg}
+  } 
+  \subfigure[sf B Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfB_3.jpg}
+  } \\
+  \subfigure[sf A Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfA_4.jpg}
+  } 
+  \subfigure[sf B Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../laplacian/sfB_4.jpg}
+  } \\
+	\caption{Comparison of Laplacian Pyramids Using Method A and B on sf.pgm.}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:edgeslenna1}
+  \subfigure[lenna Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_1_0.jpg}
+  }
+  \subfigure[lenna Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_1_1.jpg}
+  }
+  \subfigure[lenna Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_1_2.jpg}
+  }
+  \subfigure[lenna Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_1_3.jpg}
+  }
+  \subfigure[lenna Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_1_4.jpg}
+  }
+  \caption{Edges on lenna detected by second derivative, threshold value = 1}
+\end{figure}
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:edgeslenna4}
+  \subfigure[lenna Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_4_0.jpg}
+  }
+  \subfigure[lenna Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_4_1.jpg}
+  }
+  \subfigure[lenna Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_4_2.jpg}
+  }
+  \subfigure[lenna Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_4_3.jpg}
+  }
+  \subfigure[lenna Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../edges/lenna_4_4.jpg}
+  }
+  \caption{Edges on lenna detected by second derivative, threshold value = 4}
+\end{figure}
+
+\vfill
+
+~\vfill
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:edgessf1}
+  \subfigure[sf Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_1_0.jpg}
+  }
+  \subfigure[sf Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_1_1.jpg}
+  }
+  \subfigure[sf Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_1_2.jpg}
+  }
+  \subfigure[sf Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_1_3.jpg}
+  }
+  \subfigure[sf Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_1_4.jpg}
+  }
+  \caption{Edges on sf detected by second derivative, threshold value = 1}
+\end{figure}
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:edgessf4}
+  \subfigure[sf Lvl 1]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_4_0.jpg}
+  }
+  \subfigure[sf Lvl 2]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_4_1.jpg}
+  }
+  \subfigure[sf Lvl 3]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_4_2.jpg}
+  }
+  \subfigure[sf Lvl 4]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_4_3.jpg}
+  }
+  \subfigure[sf Lvl 5]{
+    \includegraphics[height=0.22\textwidth]{../edges/sf_4_4.jpg}
+  }
+  \caption{Edges on sf detected by second derivative, threshold value = 4}
+\end{figure}
+
+~\vfill
+
+\vfill
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:aerialsobel}
+  \subfigure[aerial Sobel X]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_50_sobelx.jpg}
+  }
+  \subfigure[aerial Sobel Y]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_50_sobely.jpg}
+  }
+  \subfigure[aerial Magnitude]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_50_mag.jpg}
+  }
+  \subfigure[aerial Direction]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_50_dir.jpg}
+  } \\
+  \subfigure[Threshold = 50]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_50_edges.jpg}
+  }
+  \subfigure[Threshold = 100]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_100_edges.jpg}
+  }
+  \subfigure[Threshold = 200]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_200_edges.jpg}
+  }
+  \subfigure[Threshold = 300]{
+    \includegraphics[height=0.22\textwidth]{../sobel/aerial_300_edges.jpg}
+  }
+  \caption{Sobel operations on aerial.pgm as well as the magnitude thresholded at various levels.}
+\end{figure}
+
+~\vfill
+
+\vfill
+
+\begin{figure}[hbt]
+  \centering
+  \label{fig:wheelsobel}
+  \subfigure[wheel Sobel X]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_50_sobelx.jpg}
+  }
+  \subfigure[wheel Sobel Y]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_50_sobely.jpg}
+  }
+  \subfigure[wheel Magnitude]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_50_mag.jpg}
+  }
+  \subfigure[wheel Direction]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_50_dir.jpg}
+  } \\
+  \subfigure[Threshold = 50]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_50_edges.jpg}
+  }
+  \subfigure[Threshold = 100]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_100_edges.jpg}
+  }
+  \subfigure[Threshold = 200]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_200_edges.jpg}
+  }
+  \subfigure[Threshold = 400]{
+    \includegraphics[height=0.22\textwidth]{../sobel/wheel_400_edges.jpg}
+  }
+  \caption{Sobel operations on wheel.pgm as well as the magnitude thresholded at various levels.}
+\end{figure}
+
+\vfill
+
+%\vfill
