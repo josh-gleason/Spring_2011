@@ -1,0 +1,77 @@
+\section{Experiments}
+
+  In the first experiment, a Gaussian blur was implemented by taking advantage of the
+sepearability of the 2D Gaussian function.  To accomplish this all the rows were filtered by a 
+1D Gaussian function, then the columns of this image were convolved with the same Gaussian.
+This was implemented using a $\sigma$ of 1 and 2.2, the window sizes for these $\sigma$ values
+were 5x5 and 11x11 respectively.  The output of this method was compared to the
+\texttt{GaussianBlur()} function from OpenCV.
+
+  For the second experiement a Gaussian Pyramid was constructed using two different approaches.
+The first approach was to simply convolve the image using a 5x5 gaussian (constructed in the
+first experiement), and convolving each new image with the same 5x5 gaussian to construct the
+next image.  The other method always used the original image as a base, but changed the size
+of the kernel to acheive the same effect.  The $\sigma$ values for the different layers were
+defined as $\sigma\sqrt{Layer-1}$ where layer 1 is defined as the original image.
+
+  The third experiement used the Gaussian Pyramid in the second experiement to construct a Laplacian Pyramid.  This was done using a method known as Difference of Gaussians (DoG), which is a close approximation of a laplacian.  The Pyramid was also constructed using the Laplacian opperator, in order to compare the two methods.
+
+  The fourth experiement used the Laplacian Pyramid (constructed using DoG) from experiement three to determine the edge locations in an image.  This was done by locating the zero crossings of the Laplacian at each layer.  The method for locating the zero crossing used here is explained below.
+
+\begin{enumerate}
+  \item Threshold the Laplacian using a binary threshold.  The pixels greater than 0 should be given a value of 1, and the negative values should be given a value of 0.
+  \item In the thresholded image, set all values which have a neighbor that is a different value than they are to 1 and the others to zero.
+  \item Dialate the binary image from step 2.
+  \item Find the variance of the pixels in the original Laplacian at locations where the binary image is 1.  All other values in the image should be zero.
+  \item Binary threshold the variance image using some user value to obtain edge locations.
+  \item Repeat steps 1-5 on all levels of the Laplacian Pyramid.
+\end{enumerate}
+
+  The last experiement was to implement edge detection using the Sobel operator.  This can be done by first convolving the original image with the Sobel X and Y operators which yields two images $I_x$ and $I_y$.  The magnitude image is defined as $M(x,y)=|I_x(x,y)| + |I_y(x,y)|$ and the gradient direction is defined as $R(x,y)=atan2(I_y(x,y),I_x(x,y))$.  The edges are obtained by thresholding $M$ using a user defined value.
+
+\section{Results}
+
+%MSE smooth
+% lenna 5x5 0.41452
+% lenna 11x11 0.450699
+% sf 5x5 0.372604
+% sf 11x11 0.363327
+
+%MSE gaussian pyramid level
+% lenna 1 0
+% lenna 2 0
+% lenna 3 3.95711
+% lenna 4 12.3169
+% lenna 5 19.6571
+% lenna 6 26.4998
+%
+% sf 1 0
+% sf 2 0
+% sf 3 6.6142
+% sf 4 13.0404
+% sf 5 16.5287
+% sf 6 21.4822
+
+
+\section{Discussion}
+\section{Summary}
+
+\newpage
+
+\section{Images}
+  \input{images.tex}
+\newpage
+
+\section{Source Code}
+  \subsection{funcs.h}
+    \lstinputlisting{../funcs.h}
+  \subsection{smooth.cc}
+    \lstinputlisting{../smooth/smooth.cc}
+  \subsection{gauss.cc}
+    \lstinputlisting{../gauss/gauss.cc}
+  \subsection{laplacian.cc}
+    \lstinputlisting{../laplacian/laplacian.cc}
+  \subsection{edges.cc}
+    \lstinputlisting{../edges/edges.cc}
+  \subsection{sobel.cc}
+    \lstinputlisting{../sobel/sobel.cc}
