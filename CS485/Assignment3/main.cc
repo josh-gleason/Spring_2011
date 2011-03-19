@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
+#include <iomanip>
 #include "face.h"
 
 using namespace std;
@@ -138,20 +138,18 @@ void applyAffine(const Mat& c1, const Mat &c2, Mat& P)
   P.col(0) = px.clone();
   P.col(1) = py.clone();
 
-  cout << "px py" << endl;
+
   for ( int i = 0; i < 5; i++ )
   {
     P.at<float>(i,0) = px.at<float>(i,0);
     P.at<float>(i,1) = py.at<float>(i,0);
-    cout << px.at<float>(i,0) << ' ' << py.at<float>(i,0) << endl;
   }
-  cout << endl;
 }
 
 void applyTrans( const Mat& img, Mat &newImg, const Mat& T )
 {
   Mat point = Mat(1,3,CV_32FC1), current = Mat(1,3,CV_32FC1);
-  current.at<uchar>(0,2) = (uchar)1;
+  current.at<float>(0,2) = 1.0;
   float newR, newC;
   for ( int r = 0; r < newImg.rows; r++ )
     for ( int c = 0; c < newImg.cols; c++ )
@@ -170,6 +168,29 @@ void applyTrans( const Mat& img, Mat &newImg, const Mat& T )
     }
 }
 
+float mag(const Mat& F)
+{
+  float retVal = 0.0;
+  for ( int i = 0; i < F.rows; i++ )
+    for ( int j = 0; j < F.cols; j++ )
+      retVal += (F.at<float>(i,j)*F.at<float>(i,j));
+  return sqrt(retVal);
+}
+
+Mat getAvg(const Mat& P)
+{
+  Mat retVal = Mat(1,2,CV_32FC1,Scalar(0));
+  for ( int i = 0; i < P.rows; i++ )
+  {
+    retVal.at<float>(0,0) += P.at<float>(i,0);
+    retVal.at<float>(0,1) += P.at<float>(i,1);
+  }
+  retVal.at<float>(0,0) *= 1.0/P.rows;
+  retVal.at<float>(0,1) *= 1.0/P.rows;
+
+  return retVal;
+}
+
 int main(int argc, char *argv[])
 {
   // check arguments
@@ -180,55 +201,67 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  float thresh = 1.0;
+
   // initialize variables
   vector<Face> faces = readFeatures(argv[1]); 
   Mat F_final = readFinalLocations(argv[2]);
   Mat px = F_final.col(0).clone();
   Mat py = F_final.col(1).clone();
-  /*Mat c1, c2, T, fullT;
-  Mat P, A, b;
-  for ( int I = 0; I < 10; I++ )
-  {
-    Mat img = imread(faces[I].fname,0);
-    Mat newImg = Mat(img.rows,img.cols,CV_8UC1);
-    for ( int x = 0; x < 8; x++ )
-    {
-      P = getPMatrix(faces[I]);
+  Mat c1, c2, T, fullT, P;
+  Mat img, newImg = Mat(48,40,CV_8UC1);
+  vector<Mat> F;
 
+  int iter = 0;
+  bool cont;
+
+  for ( int index = 0; index < (int)faces.size(); index++ )
+  {
+    // read image from file
+    img = imread(faces[index].fname,0);
+
+    // build P matrix for face
+    P = getPMatrix(faces[index]);
+
+    // clear and push new F matrix to list
+    F.clear();
+    F.push_back(getAvg(P));
+   
+    iter = 1;
+
+    do {
       // compute affine transform using SVD
       solve(P,px,c1,DECOMP_SVD);
       solve(P,py,c2,DECOMP_SVD);
       
-      T = buildInvAffine(c1,c2);
-      if ( x == 0 )
-        fullT = T;
-      else
-        fullT *= T;
-
       // apply transformation
-      applyTrans(img,newImg,fullT);
       applyAffine(c1,c2,P);
       
-      for ( int i = 0; i < 5; i++ )
-        cout << P.at<float>(i,0) << ' ' << P.at<float>(i,1) << endl;
-      cout << endl;
+      // push new F matrix to list
+      F.push_back(getAvg(P));
       
-      setPMatrix(faces[I],P);
+      // construct transform
+      T = buildInvAffine(c1,c2);
+      ( iter == 1 ? fullT = T : fullT *= T );
+      
+      // check to see if we should continue
+      cont = ( mag(F[iter]-F[iter-1]) < thresh ? false : true );
 
-      // display results (temporary)
-      imshow("Orig",img);
-      for ( int i = 0; i < 5; i++ )
-      {
-        circle(newImg,Point(px.at<float>(i,0),py.at<float>(i,0)),5,Scalar(125,125,125));
-        circle(newImg,Point(P.at<float>(i,0),P.at<float>(i,1)),5,Scalar(255,255,255));
-      }
-      imshow("New",newImg);
-      waitKey(0);
-    }
-  }// while ( false );
-*/
-  // save/display results
-
+      iter++;
+    } while ( cont ); 
+    
+    // build new image
+    applyTrans(img,newImg,fullT);
+    imshow("Orig",img);
+    imshow("New",newImg);
+    waitKey(0);
+   
+    // save results
+    ostringstream sout;
+    sout << "./results/" << index << ".jpg";
+    imwrite(sout.str(),newImg);
+  }
+  
   // end
   return 0;
 }
