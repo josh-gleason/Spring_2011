@@ -62,32 +62,6 @@ Mat readFinalLocations(string fname)
   return F;
 }
 
-void getAverage(vector<Face>& faces, Mat& F)
-{
-    // initialize to zero
-    for ( int i = 0; i < 5; i++ )
-      for ( int j = 0; j < 2; j++ )
-        F.at<float>(i,j) = 0;
-    
-    // get sum
-    for ( vector<Face>::iterator it = faces.begin(); it != faces.end(); ++it)
-      for ( int i = 0; i < 5; i++ )
-        for ( int j = 0; j < 2; j++ )
-          F.at<float>(i,j) += (*it).F.at<float>(i,j);
-    
-    // divide by total
-    for ( int i = 0; i < 5; i++ )
-      for ( int j = 0; j < 2; j++ )
-        F.at<float>(i,j) /= (float)faces.size();
-}
-
-void setPMatrix(Face& face, Mat& P)
-{
-  for ( int i = 0; i < 5; i++ )
-    for ( int j = 0; j < 2; j++ )
-      face.F.at<float>(i,j)=P.at<float>(i,j);
-}
-
 Mat getPMatrix(Face& face)
 {
   Mat ret = Mat(5,3,CV_32FC1);
@@ -122,28 +96,11 @@ Mat buildInvAffine(Mat& c1, Mat& c2)
   inv.at<float>(1,0) = -a12*mult;
   inv.at<float>(1,1) = a11*mult;
   inv.at<float>(1,2) = 0;
-  inv.at<float>(2,0) = (a21*b2-a22*b1)*mult;
-  inv.at<float>(2,1) = (a12*b1-a11*b2)*mult;
+  inv.at<float>(2,0) = (a12*b2-a22*b1)*mult;
+  inv.at<float>(2,1) = (a21*b1-a11*b2)*mult;
   inv.at<float>(2,2) = (a11*a22-a21*a12)*mult;
 
   return inv;
-}
-
-void applyAffine(const Mat& c1, const Mat &c2, Mat& P)
-{
-  Mat px = Mat(5,1,CV_32FC1),
-      py = Mat(5,1,CV_32FC1);
-  px = P*c1,
-  py = P*c2;
-  P.col(0) = px.clone();
-  P.col(1) = py.clone();
-
-
-  for ( int i = 0; i < 5; i++ )
-  {
-    P.at<float>(i,0) = px.at<float>(i,0);
-    P.at<float>(i,1) = py.at<float>(i,0);
-  }
 }
 
 void applyTrans( const Mat& img, Mat &newImg, const Mat& T )
@@ -177,18 +134,10 @@ float mag(const Mat& F)
   return sqrt(retVal);
 }
 
-Mat getAvg(const Mat& P)
+float getDiff(const Mat& F1, const Mat& F2)
 {
-  Mat retVal = Mat(1,2,CV_32FC1,Scalar(0));
-  for ( int i = 0; i < P.rows; i++ )
-  {
-    retVal.at<float>(0,0) += P.at<float>(i,0);
-    retVal.at<float>(0,1) += P.at<float>(i,1);
-  }
-  retVal.at<float>(0,0) *= 1.0/P.rows;
-  retVal.at<float>(0,1) *= 1.0/P.rows;
-
-  return retVal;
+  Mat diff = F1-F2;
+  return (float)(norm(diff));
 }
 
 int main(int argc, char *argv[])
@@ -201,67 +150,129 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  float thresh = 1.0;
+  float thresh = 0.00001;
 
   // initialize variables
-  vector<Face> faces = readFeatures(argv[1]); 
+  vector<Face> faces = readFeatures(argv[1]), faces2 = readFeatures(argv[1]);
   Mat F_final = readFinalLocations(argv[2]);
-  Mat px = F_final.col(0).clone();
-  Mat py = F_final.col(1).clone();
-  Mat c1, c2, T, fullT, P;
+  Mat c1, c2, T, fullT, P, F_bar, F_bar_prime, F_bar_prev, F_i_prime, F_tot, temp, T_temp, px, py;
   Mat img, newImg = Mat(48,40,CV_8UC1);
-  vector<Mat> F;
+
+  vector<Mat> T_inv;
+
+  for ( int i = 0; i < (int)faces.size(); i++ )
+  {
+    T_inv.push_back(Mat(3,3,CV_32FC1));
+    setIdentity(T_inv[i]);
+  }
 
   int iter = 0;
   bool cont;
 
-  for ( int index = 0; index < (int)faces.size(); index++ )
-  {
-    // read image from file
-    img = imread(faces[index].fname,0);
+  int ASDF = 0;
+  
+  F_tot = Mat(5,2,CV_32FC1);
 
-    // build P matrix for face
-    P = getPMatrix(faces[index]);
+  P = Mat(5,3,CV_32FC1);
+  F_bar_prime = Mat(2,5,CV_32FC1);
+    
+  // initialize F_bar to first image
+  F_bar = faces[0].F.clone();
 
-    // clear and push new F matrix to list
-    F.clear();
-    F.push_back(getAvg(P));
-   
-    iter = 1;
+  do {
+    cout << ASDF << endl;
+    ASDF++;
+    // make copy of F_bar for later
+    F_bar_prev = F_bar.clone();
 
-    do {
-      // compute affine transform using SVD
+    // set P
+    for ( int i = 0; i < 5; i++ )
+    {
+      P.at<float>(i,0) = F_bar.at<float>(i,0);
+      P.at<float>(i,1) = F_bar.at<float>(i,1);
+      P.at<float>(i,2) = 1.0;
+    }
+
+    // set px and py
+    px = F_final.col(0).clone();
+    py = F_final.col(1).clone();
+
+    // solve for transform
+    solve(P,px,c1,DECOMP_SVD);
+    solve(P,py,c2,DECOMP_SVD);
+
+    // build transform matrix
+    T = Mat(3,2,CV_32FC1);
+    for ( int i = 0; i < 3; i++ )
+    {
+      T.at<float>(i,0) = c1.at<float>(i,0);
+      T.at<float>(i,1) = c2.at<float>(i,0);
+    }
+
+    // apply on F_bar (P)
+    F_bar_prime = P*T;
+
+    // Update F_bar by setting equal to F_bar_prime
+    F_bar = F_bar_prime.clone();
+    
+    // zero matrix
+    F_tot = Mat(5,2,CV_32FC1,Scalar(0.0));
+
+    // For every face image F_i use SVD to align F_i with F_bar to make F_i_prime
+    for ( int index = 0; index < (int)faces.size(); index++ )
+    {
+      // set P
+      P = getPMatrix(faces[index]);
+
+      px = F_bar.col(0).clone();
+      py = F_bar.col(1).clone();
+
+      // perform SVD
       solve(P,px,c1,DECOMP_SVD);
       solve(P,py,c2,DECOMP_SVD);
-      
-      // apply transformation
-      applyAffine(c1,c2,P);
-      
-      // push new F matrix to list
-      F.push_back(getAvg(P));
-      
-      // construct transform
-      T = buildInvAffine(c1,c2);
-      ( iter == 1 ? fullT = T : fullT *= T );
-      
-      // check to see if we should continue
-      cont = ( mag(F[iter]-F[iter-1]) < thresh ? false : true );
 
-      iter++;
-    } while ( cont ); 
+      // build the inverse Affine
+      temp = buildInvAffine(c1,c2);
+      T_temp = T_inv[index].clone();
+      T_inv[index] = temp*T_temp;
+
+      // build transform matrix
+      for ( int i = 0; i < 3; i++ )
+      {
+        T.at<float>(i,0) = c1.at<float>(i,0);
+        T.at<float>(i,1) = c2.at<float>(i,0);
+      }
+
+      // apply on F_i to get F_i_prime
+      F_i_prime = P*T;
+
+      // keep running total
+      F_tot += F_i_prime;
+
+      // set F_i equal to F_i_prime
+      faces[index].F = F_i_prime.clone();
+    }
+
+    // update F by average the values of F_i for each image
+    F_bar = F_tot/(int)faces.size();
+
+  } while ( getDiff(F_bar,F_bar_prev) > thresh );
+
+  // show results
+  for ( int index = 0; index < (int)faces.size(); index++ )
+  {
+    // read image
+    img = imread(faces[index].fname,0);
     
-    // build new image
-    applyTrans(img,newImg,fullT);
-    imshow("Orig",img);
-    imshow("New",newImg);
-    waitKey(0);
-   
-    // save results
+    // apply transform
+    applyTrans(img,newImg,T_inv[index]);
+    
+    // save
     ostringstream sout;
     sout << "./results/" << index << ".jpg";
     imwrite(sout.str(),newImg);
   }
-  
+
   // end
   return 0;
 }
