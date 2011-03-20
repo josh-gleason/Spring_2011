@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  float thresh = 0.00001;
+  float thresh = 0.001;
 
   // initialize variables
   vector<Face> faces = readFeatures(argv[1]), faces2 = readFeatures(argv[1]);
@@ -266,7 +266,15 @@ int main(int argc, char *argv[])
     
     // apply transform
     applyTrans(img,newImg,T_inv[index]);
-    
+   
+    //for ( int i = 0; i < 5; i++ )
+    //{
+    //  circle(newImg,Point(faces[index].F.at<float>(i,0),faces[index].F.at<float>(i,1)),
+    //    5,Scalar(255,255,255),1);
+    //  circle(newImg,Point(F_final.at<float>(i,0),F_final.at<float>(i,1)),
+    //    4,Scalar(0,0,0),1);
+    //}
+
     // save
     ostringstream sout;
     sout << "./results/" << index << ".jpg";
