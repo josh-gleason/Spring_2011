@@ -119,19 +119,12 @@ void applyTrans( const Mat& img, Mat &newImg, const Mat& T )
       
       if ( (int)newR >= img.rows || (int)newR < 0 ||
            (int)newC >= img.cols || (int)newC < 0 )
-        newImg.at<uchar>(r,c) = (uchar)0;
+        newImg.at<uchar>(r,c) = img.at<uchar>(
+        ((int)newR<0 ? 0 : ((int)newR>img.rows ? img.rows-1 : (int)newR )),
+        ((int)newC<0 ? 0 : ((int)newC>img.cols ? img.cols-1 : (int)newC )));
       else
         newImg.at<uchar>(r,c) = img.at<uchar>((int)newR,(int)newC);
     }
-}
-
-float mag(const Mat& F)
-{
-  float retVal = 0.0;
-  for ( int i = 0; i < F.rows; i++ )
-    for ( int j = 0; j < F.cols; j++ )
-      retVal += (F.at<float>(i,j)*F.at<float>(i,j));
-  return sqrt(retVal);
 }
 
 float getDiff(const Mat& F1, const Mat& F2)
@@ -143,45 +136,37 @@ float getDiff(const Mat& F1, const Mat& F2)
 int main(int argc, char *argv[])
 {
   // check arguments
-  if ( argc < 3 )
+  if ( argc < 4 )
   {
     cout << "Please enter the filename of the faces feature locations followed by"
-         << "the filename containing the final face locations" << endl;
+         << "the filename containing the final face locations and a threshold" << endl;
     return -1;
   }
 
-  float thresh = 0.001;
+  float thresh = atof(argv[3]);
 
   // initialize variables
   vector<Face> faces = readFeatures(argv[1]), faces2 = readFeatures(argv[1]);
   Mat F_final = readFinalLocations(argv[2]);
-  Mat c1, c2, T, fullT, P, F_bar, F_bar_prime, F_bar_prev, F_i_prime, F_tot, temp, T_temp, px, py;
+  Mat c1, c2, T, P, F_bar, F_bar_prime, F_bar_prev, F_i_prime, F_tot, px, py;
   Mat img, newImg = Mat(48,40,CV_8UC1);
 
+  // holds the seperate inverse affine transforms for each face
   vector<Mat> T_inv;
 
+  // set all of them to initialize as Identity matrix
   for ( int i = 0; i < (int)faces.size(); i++ )
   {
     T_inv.push_back(Mat(3,3,CV_32FC1));
     setIdentity(T_inv[i]);
   }
-
-  int iter = 0;
-  bool cont;
-
-  int ASDF = 0;
-  
-  F_tot = Mat(5,2,CV_32FC1);
-
+  // initialize P as a 5x3 matrix
   P = Mat(5,3,CV_32FC1);
-  F_bar_prime = Mat(2,5,CV_32FC1);
     
   // initialize F_bar to first image
   F_bar = faces[0].F.clone();
 
   do {
-    cout << ASDF << endl;
-    ASDF++;
     // make copy of F_bar for later
     F_bar_prev = F_bar.clone();
 
@@ -232,9 +217,7 @@ int main(int argc, char *argv[])
       solve(P,py,c2,DECOMP_SVD);
 
       // build the inverse Affine
-      temp = buildInvAffine(c1,c2);
-      T_temp = T_inv[index].clone();
-      T_inv[index] = temp*T_temp;
+      T_inv[index] *= buildInvAffine(c1,c2);
 
       // build transform matrix
       for ( int i = 0; i < 3; i++ )
@@ -249,7 +232,7 @@ int main(int argc, char *argv[])
       // keep running total
       F_tot += F_i_prime;
 
-      // set F_i equal to F_i_prime
+      // set F_i to F_i_prime
       faces[index].F = F_i_prime.clone();
     }
 
@@ -266,19 +249,83 @@ int main(int argc, char *argv[])
     
     // apply transform
     applyTrans(img,newImg,T_inv[index]);
-   
-    //for ( int i = 0; i < 5; i++ )
-    //{
-    //  circle(newImg,Point(faces[index].F.at<float>(i,0),faces[index].F.at<float>(i,1)),
-    //    5,Scalar(255,255,255),1);
-    //  circle(newImg,Point(F_final.at<float>(i,0),F_final.at<float>(i,1)),
-    //    4,Scalar(0,0,0),1);
-    //}
+  
+    Mat circleImg = newImg.clone();
 
-    // save
+    // draw circles
+    for ( int i = 0; i < 5; i++ )
+    {
+      circle(circleImg,Point(faces[index].F.at<float>(i,0),faces[index].F.at<float>(i,1)),
+        5,Scalar(255,255,255),1);
+      circle(circleImg,Point(F_final.at<float>(i,0),F_final.at<float>(i,1)),
+        4,Scalar(0,0,0),1);
+    }
+
+    // write images with circles
     ostringstream sout;
+    sout << "./results/circles/" << index << ".jpg";
+    imwrite(sout.str(),circleImg);
+
+    // write before light normalization
+    sout.str("");
     sout << "./results/" << index << ".jpg";
     imwrite(sout.str(),newImg);
+
+    // light normalization
+
+    Mat B = Mat(newImg.rows*newImg.cols,1,CV_32FC1);
+    Mat A = Mat(newImg.rows*newImg.cols,4,CV_32FC1);
+    Mat X; // [a b c d]
+    int i, v;
+    int min, max;
+    max = min = (int)newImg.at<uchar>(0,0);
+    // normalize light
+    for ( int y = 0; y < newImg.rows; y++ )
+      for ( int x = 0; x < newImg.cols; x++ )
+      {
+        v = (int)newImg.at<uchar>(y,x);
+        if ( max < v )
+          max = v;
+        if ( min > v )
+          min = v;
+
+        i = y*newImg.cols+x;
+        B.at<float>(i,0) = (float)newImg.at<uchar>(y,x);
+        A.at<float>(i,0) = x;
+        A.at<float>(i,1) = y;
+        A.at<float>(i,2) = x*y;
+        A.at<float>(i,3) = 1;
+      }
+    solve(A,B,X,DECOMP_SVD);
+
+    float a = X.at<float>(0,0);
+    float b = X.at<float>(1,0);
+    float c = X.at<float>(2,0);
+    float d = X.at<float>(3,0);
+
+    Mat model = Mat(newImg.rows, newImg.cols, CV_32FC1);
+
+    for ( int y = 0; y < model.rows; y++ )
+      for ( int x = 0; x < model.cols; x++ )
+        model.at<float>(y,x) = a*x+b*y+c*x*y+d;        
+
+    Mat saveModel;
+    normalize(model, saveModel, 80, 180, CV_MINMAX, CV_8UC1);
+
+    Mat correct;
+    newImg.convertTo(correct,CV_32FC1);
+
+    correct -= model;
+
+    normalize(correct, newImg, min, max, CV_MINMAX, CV_8UC1);
+
+    // save
+    sout.str("");
+    sout << "./results/light/faces/" << index << ".jpg";
+    imwrite(sout.str(),newImg);
+    sout.str("");
+    sout << "./results/light/" << index << ".jpg";
+    imwrite(sout.str(),saveModel);
   }
 
   // end
