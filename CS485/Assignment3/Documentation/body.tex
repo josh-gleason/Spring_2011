@@ -1,0 +1,38 @@
+\section{Introduction}
+
+  This program demonstrates a method for normalizing a group of face images with hand labeled
+features.  This normalization method attempts to map five points to a set of five predefined locations using an Affine transform.  Because each point consists of two parts (x and y) a total of 10 equations are known while the Affine transformation matrix only has 6 parameters.  This leads to an over-determined system which very likely has no solution.  By using a method known as Singular Value Decomposition(SVD), the solution which yields the least Mean Square Error(MSE) can be computed efficiently.
+
+A method for correcting non-uniform illumination in the resulting face images was also implemented.  This method involves solving for the coefficients of Eq.~\ref{eq:1} with respect to every pixel in the image.  This means for an NxM image, there are 4 unknown and NM equations.  Because this system is also over-determined, SVD was used to calculate the least MSE coefficients. 
+
+\begin{equation}
+  \label{eq:1}
+  f(x,y)=ax+by+cxy+d
+\end{equation}
+
+\section{Results}
+  
+  The results of the normalization process were very favorable (Fig. 1). While the points in the images could not be mapped exactly to the desired locations, Fig. 2 shows that the features were all very close.  The white circles have a radius of 5 pixels and the black circles have a radius of 4 pixels.  Fig. 2 shows that no feature was more than 9 pixels away from its desired position and in most cases the features were no more than 3 pixels away.
+
+  The light correction function calculated using SVD can be seen in Fig. 3.  The final results of the light correction can be seen in Fig. 4.  While this method seemed to work well in most cases, it seemed to have trouble when a large amount of dark background was in an image.  The black background seemed to overpower the function and cause it to try and lighten this area while darkening bright area causing an odd shadowing effect.
+
+\section{Conclusion}
+
+  By implementing these methods I learned a great deal about using SVD for solving over-determined systems.  I also learned a great deal about Affine transforms and how to map the pixels using an inverse to ensure no holes are left in the transformed image.
+
+  Originally I was confused about why an iterative method is used here rather than directly mapping each image to the final locations.  The reason I came up with is that this iterative method not only aligns the images to the final location but also to each other.  By using this iterative method even if the final location points are chosen poorly, all the faces should be mapped to approximately the same locations.
+
+  The light correction part was also an interesting concept, it shows how a relatively simple function like Eq.~\ref{eq:1} can be used to correct major intensity inconsistencies in an image.
+
+\newpage
+
+\section{Images}
+  \input{"./images.tex"}
+
+\newpage
+
+\section{Source Code}
+  \subsection{funcs.h}
+    \lstinputlisting{../face.h}
+	\subsection{main.cc}
+    \lstinputlisting{../main.cc}
