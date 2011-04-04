@@ -117,12 +117,14 @@ void applyTrans( const Mat& img, Mat &newImg, const Mat& T )
       newC = point.at<float>(0,0);
       newR = point.at<float>(0,1);
       
-      if ( (int)newR >= img.rows || (int)newR < 0 ||
-           (int)newC >= img.cols || (int)newC < 0 )
-        newImg.at<uchar>(r,c) = img.at<uchar>(
-        ((int)newR<0 ? 0 : ((int)newR>img.rows ? img.rows-1 : (int)newR )),
-        ((int)newC<0 ? 0 : ((int)newC>img.cols ? img.cols-1 : (int)newC )));
-      else
+      //if ( (int)newR >= img.rows || (int)newR < 0 ||
+      //     (int)newC >= img.cols || (int)newC < 0 )
+      //
+      //
+      //  newImg.at<uchar>(r,c) = img.at<uchar>(
+      //  ((int)newR<0 ? 0 : ((int)newR>img.rows ? img.rows-1 : (int)newR )),
+      //  ((int)newC<0 ? 0 : ((int)newC>img.cols ? img.cols-1 : (int)newC )));
+      //else
         newImg.at<uchar>(r,c) = img.at<uchar>((int)newR,(int)newC);
     }
 }
@@ -135,6 +137,10 @@ float getDiff(const Mat& F1, const Mat& F2)
 
 int main(int argc, char *argv[])
 {
+  cout << "Make sure the following directories exist" << endl
+       << "./results/" << endl << "./results/circles/" << endl
+       << "./results/light/" << endl << "./results/light/faces/" << endl;
+
   // check arguments
   if ( argc < 4 )
   {
