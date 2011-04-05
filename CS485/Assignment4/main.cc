@@ -34,20 +34,19 @@ float buildPyramids( const Mat& img, float sigma0, float k, int levels,
 
   for ( int i = 0; i < levels-1; i++ )
   {
-    blurred = gauss[i+1] - gauss[i];
+    blurred = gauss[i] - gauss[i+1];
     doG.push_back(blurred.clone());
   }
 
   return sigma / k;
 }
   
-void harrisGauss(const vector<Mat>& gauss, float sigma0, float k, float alpha,
+void harrisPyramid(const Mat& img, float sigma0, float k, int levels, float alpha,
   vector<Mat>& harris)
 {
   harris.clear();
 
   float sigmaD, sigmaI;
-  int levels = static_cast<int>(gauss.size());
   int neighSize, maskSize;
   Mat corners;
 
@@ -69,13 +68,13 @@ void harrisGauss(const vector<Mat>& gauss, float sigma0, float k, float alpha,
            << "mask size: " << maskSize << endl
            << "alpha: " << alpha << endl;
 
-    cornerHarris(gauss[i],corners,neighSize,maskSize,alpha);
+    cornerHarris(img,corners,neighSize,maskSize,alpha);
 
     harris.push_back(corners.clone());
   }
 }
 
-void findMaxima(const vector<Mat>& harris, float t1, vector<vector<Point> >& maxima)
+void findMaxima(const vector<Mat>& harris, float t1, vector<vector<Point> >& harrisMaxima)
 {
   // assume all Mat in harris are same size
   int size = static_cast<int>(harris.size());
@@ -89,7 +88,7 @@ void findMaxima(const vector<Mat>& harris, float t1, vector<vector<Point> >& max
   for ( int i = 0; i < size; i++ )
   {
     // push new vector onto back
-    maxima.push_back(vector<Point>());
+    harrisMaxima.push_back(vector<Point>());
     for ( int r = 1; r < rmax; r++ )
       for ( int c = 1; c < cmax; c++ )
       {
@@ -110,12 +109,12 @@ void findMaxima(const vector<Mat>& harris, float t1, vector<vector<Point> >& max
         
         // if largest then push back
         if ( largest )
-          maxima[i].push_back(Point(c,r));
+          harrisMaxima[i].push_back(Point(c,r));
       }
   }
 }
 
-void validate( const vector<Mat>& doG, const vector<vector<Point> >& maxima,
+void doGMaxima( const vector<Mat>& doG, const vector<vector<Point> >& maxima,
   float t2, vector<vector<Point> >& dogMaxima )
 {
   int maxLevel = static_cast<int>(doG.size())-1;
@@ -129,11 +128,11 @@ void validate( const vector<Mat>& doG, const vector<vector<Point> >& maxima,
   for ( int i = 1; i < maxLevel; i++ )
   {
     dogMaxima.push_back(vector<Point>());
-    numPoints = static_cast<int>(maxima[i].size());
+    numPoints = static_cast<int>(maxima[i+1].size());
     for ( int j = 0; j < numPoints; j++ )
     {
-      cX = maxima[i][j].x;
-      cY = maxima[i][j].y;
+      cX = maxima[i+1][j].x;
+      cY = maxima[i+1][j].y;
       
       val = doG[i].at<float>(cY,cX);
 
@@ -150,7 +149,7 @@ void validate( const vector<Mat>& doG, const vector<vector<Point> >& maxima,
                 largest = false;
 
       if ( largest )
-        dogMaxima[i-1].push_back( maxima[i][j] );
+        dogMaxima[i-1].push_back( maxima[i+1][j] );
     }
   }
 }
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
   Mat img8bit = imread(s.imagename,0);
   Mat img;
   vector<Mat> doG, gauss, harris;
-  vector<vector<Point> > maxima, dogMaxima;
+  vector<vector<Point> > harrisMaxima, dogMaxima;
   float sigmaMax;
 
   // convert to floating point
@@ -177,18 +176,29 @@ int main(int argc, char *argv[])
   // build pyramids
   sigmaMax = buildPyramids(img, s.sigma0, s.k, s.levels, gauss, doG);
 
+  // TODO: temporary
+  //for ( int i = 0; i < doG.size(); i++ )
+  //{
+  //  Mat temp;
+  //  normalize(doG[i],temp,0.0,255.0,CV_MINMAX,CV_8UC1);
+  //  imshow("",temp);
+  //  waitKey(0);
+  //}
+  //TODO: end temporary
+
   // run Harris on gaussian
-  harrisGauss(gauss, s.sigma0, s.k, s.alpha, harris);
+  harrisPyramid(img, s.sigma0, s.k, s.levels, s.alpha, harris);
 
   // find maxima (maxima)
-  findMaxima(harris, s.t1, maxima);
+  findMaxima(harris, s.t1, harrisMaxima);
 
   // verify maxima using the DoG pyramid
-  validate(doG, maxima, s.t2, dogMaxima);
+  doGMaxima(doG, harrisMaxima, s.t2, dogMaxima);
 
+  // TODO: temporary
+  // DISPLAY RESULTS THUS FAR
   for ( int i = 0; i < dogMaxima.size(); i++ )
     cout << i << " : " << dogMaxima[i].size() << endl;
-
   
   Mat colorImg = imread(s.imagename,1);
 
@@ -199,7 +209,8 @@ int main(int argc, char *argv[])
     }
   imshow("",colorImg);
   waitKey(0);
-
+  // TODO: end temporary
+  
   return 0;
 }
 
