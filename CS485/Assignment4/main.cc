@@ -189,6 +189,17 @@ int main(int argc, char *argv[])
   for ( int i = 0; i < dogMaxima.size(); i++ )
     cout << i << " : " << dogMaxima[i].size() << endl;
 
+  
+  Mat colorImg = imread(s.imagename,1);
+
+  for ( int i = 0; i < dogMaxima.size(); i++ )
+    for ( int j = 0; j < dogMaxima[i].size(); j++ )
+    {
+      circle(colorImg,dogMaxima[i][j],s.sigma0*pow(s.k,i+1)*sqrt(2.0),Scalar(0,255,0));
+    }
+  imshow("",colorImg);
+  waitKey(0);
+
   return 0;
 }
 
