@@ -1,0 +1,14 @@
+#Settings file
+
+IMAGE       graf/img1.ppm
+
+#For step 1, 2
+SIGMA_0     1.5
+K           1.2
+LEVELS      17
+
+#For Harris
+ALPHA       0.06
+
+T1          1500
+T2          10
