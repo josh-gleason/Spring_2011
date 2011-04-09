@@ -1,14 +1,64 @@
 #Settings file
 
-IMAGE       graf/img1.ppm
+# General Settings 
+  # IMAGE       circle_59_35_r17.pgm
+  # IMAGE       onecircle.png
+  # IMAGE       scalespaceTest.png
+   IMAGE       graf/img1.ppm
+  # IMAGE       graf/img3.ppm
+  # IMAGE       graf/img5.ppm
+  # IMAGE       boat/img1.pgm
+  # IMAGE       boat/img3.pgm
+  # IMAGE       boat/img5.pgm
 
-#For step 1, 2
-SIGMA_0     1.5
-K           1.2
-LEVELS      17
+  SIGMA_0     2.0
+  SIGMA_MAX   8.0
+  LEVELS      10
 
-#For Harris
-ALPHA       0.06
+  # Use either SIGMA_MAX to find K or K to find SIGMA_MAX
+  USE_SIGMA_MAX 1
+  K           1.2
 
-T1          1500
-T2          10
+
+# Calculating DoG
+  # Gaussian mask size = GAUSS_WIN_MULTIPLIER * SIGMA
+  GAUSS_WIN_MULTIPLIER 6
+
+
+# DoG Maxima
+  # Region to search in
+  DOG_REGION_X 3
+  DOG_REGION_Y 3
+  DOG_REGION_Z 3
+  
+  # Normalize DoG values from 0 to 1
+  # This is done by normalizing ALL LEVELS AT ONCE so it shouldn't change
+  # the levels relations to eachother
+  DOG_NORMALIZE 0
+
+  # Only consider values greater than T2
+  T2          0
+
+  # An Extrema can have values around it equal to it without being rejected
+  DMAX_ALLOW_EQUAL 1
+
+  # Value of Extrema equals...
+  # abs(second largest/smallest - center value) -> DMAX_USE_DIFF = 1
+  # 1.0 -> DMAX_USE_DIFF = 0
+  DMAX_USE_DIFF 0
+
+
+# Calculating Harris
+  HAR_REGION_X      3
+  HAR_REGION_Y      3
+  HAR_ALPHA         0.04
+  HAR_SIGMA_D_RATIO 0.7
+  HAR_ALLOW_EQUAL   1
+  HAR_USE_DIFF      0
+  T1                0
+
+# Accepting Points
+  ACCEPT_REGION_X   5
+  ACCEPT_REGION_Y   5
+  USE_HARRIS_LOCS   1
+
