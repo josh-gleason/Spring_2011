@@ -144,6 +144,8 @@ struct Settings
             sin >> crossB >> crossG >> crossR;
           else if ( param == "CIRCLE_COLOR" )
             sin >> circleB >> circleG >> circleR;
+          else if ( param == "HAR_NORMALIZE" )
+            sin >> harNormalize;
           
           ///////////////////////////////////////////////////////////////
         }
@@ -161,6 +163,7 @@ struct Settings
   int circleThickness, crossThickness, crossSize;
   float circleMult, crossB, crossG, crossR;
   float circleB, circleG, circleR;
+  bool harNormalize;
   bool saveFile;
   bool useMax;
   bool doGAllowEqual;

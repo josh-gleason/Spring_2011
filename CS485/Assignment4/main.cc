@@ -312,8 +312,17 @@ void buildHarris(const Mat& img, vector<Mat>& harris, const Settings& s)
     else // use mine
       harrisDetector(img,corners,sigmaD,sigmaI,s.alpha,s);  
 
-    harris.push_back(corners.clone());
-    
+    if ( s.harNormalize )
+    {
+      Mat temp;
+      normalize(corners, temp, 0.0, 1000000.0, CV_MINMAX, CV_32FC1);
+      harris.push_back(temp.clone());
+    }
+    else
+    {
+      harris.push_back(corners.clone());
+    }
+
     sigma *= s.k;
   }
 }
