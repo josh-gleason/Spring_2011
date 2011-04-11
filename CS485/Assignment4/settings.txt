@@ -1,64 +1,183 @@
 #Settings file
 
-# General Settings 
-  # IMAGE       circle_59_35_r17.pgm
-  # IMAGE       onecircle.png
-  # IMAGE       scalespaceTest.png
-   IMAGE       graf/img1.ppm
-  # IMAGE       graf/img3.ppm
-  # IMAGE       graf/img5.ppm
-  # IMAGE       boat/img1.pgm
-  # IMAGE       boat/img3.pgm
-  # IMAGE       boat/img5.pgm
+# Input image ###########################################################################
 
-  SIGMA_0     2.0
-  SIGMA_MAX   8.0
-  LEVELS      10
+    # IMAGE        graf/img1.ppm
+    # IMAGE        graf/img3.ppm
+    # IMAGE        graf/img5.ppm
+
+    IMAGE        boat/img1.pgm 
+    # IMAGE        boat/img3.pgm 
+    # IMAGE        boat/img5.pgm 
+    
+    # IMAGE        josh/img1.ppm
+
+# Scale settings ########################################################################
 
   # Use either SIGMA_MAX to find K or K to find SIGMA_MAX
   USE_SIGMA_MAX 1
-  K           1.2
 
+  SIGMA_0     1.0
+  SIGMA_MAX   7.25
+  # K             1.179420233
+  LEVELS      13
 
-# Calculating DoG
+# Matching parameters ###################################################################
+
+  # If this is zero only one image is processed
+  ENABLE_MATCHING  1
+ 
+  # IMAGE_COMPARE         graf/img1.ppm
+  # HFILE                 graf/H3to1p
+  # HFILE                 graf/H5to1p
+
+  # IMAGE_COMPARE         graf/img3.ppm
+  # HFILE                 graf/H1to3p
+  # HFILE                 graf/H5to3p
+
+  # IMAGE_COMPARE         graf/img5.ppm
+  # HFILE                 graf/H1to5p
+  # HFILE                 graf/H3to5p
+ 
+  # IMAGE_COMPARE         boat/img1.pgm
+  # HFILE                 boat/H3to1p
+  # HFILE                 boat/H5to1p
+
+  IMAGE_COMPARE         boat/img3.pgm
+  HFILE                 boat/H1to3p
+  # HFILE                 boat/H5to3p
+
+  # IMAGE_COMPARE         boat/img5.pgm
+  # HFILE                 boat/H1to5p
+  # HFILE                 boat/H3to5p
+
+  # IMAGE_COMPARE         josh/img3.ppm
+  # HFILE                 josh/H1to3p
+  # IMAGE_COMPARE         josh/img5.ppm
+  # HFILE                 josh/H1to5p
+
+  # Note: use a much smaller T2 for graf images
+
+  # Points that fall within this radius of one another are counted as matching
+  MATCH_THRESHOLD  1.5
+
+  # Recomended, Remove points that are mapped to an out of range location
+  BOUNDS_CHECK   1
+
+  # Recomended, Removes repeating points
+  # i.e., two points in Image 1 can not be matches to the same point in Image 2
+  REMOVE_REPEATS 1
+
+  # 0 - the difference <= MATCH_THRESHOLD is used
+  # 1 - the match where ||x1 - H*x2|| is minimized (and below MATCH_THRESHOLD) is used
+  USE_SHORTEST_DISTANCE 1
+
+# Display ###############################################################################
+
+  # Display Images for which steps
+  DISPLAY_DOG                0
+  DISPLAY_HARRIS             0
+  DISPLAY_ORIGINAL_POINTS    1
+  DISPLAY_IN_BOUNDS_POINTS   0
+  DISPLAY_MATCHING           1
+
+# Calculating DoG ######################################################################
+
+  ENABLE_DOG        1
+
   # Gaussian mask size = GAUSS_WIN_MULTIPLIER * SIGMA
-  GAUSS_WIN_MULTIPLIER 6
+  GAUSS_WIN_MULTIPLIER 7
 
-
-# DoG Maxima
   # Region to search in
   DOG_REGION_X 3
   DOG_REGION_Y 3
-  DOG_REGION_Z 3
-  
+  DOG_REGION_Z 5
+
   # Normalize DoG values from 0 to 1
   # This is done by normalizing ALL LEVELS AT ONCE so it shouldn't change
   # the levels relations to eachother
-  DOG_NORMALIZE 0
+  DOG_NORMALIZE   0
 
   # Only consider values greater than T2
-  T2          0
+  T2               10.8
 
   # An Extrema can have values around it equal to it without being rejected
-  DMAX_ALLOW_EQUAL 1
+  DMAX_ALLOW_EQUAL 0
+
+  DMAX_THRESH      0
 
   # Value of Extrema equals...
   # abs(second largest/smallest - center value) -> DMAX_USE_DIFF = 1
   # 1.0 -> DMAX_USE_DIFF = 0
   DMAX_USE_DIFF 0
 
+# Harris ################################################################################
 
-# Calculating Harris
-  HAR_REGION_X      3
-  HAR_REGION_Y      3
-  HAR_ALPHA         0.04
+  ENABLE_HARRIS     1
+  
+  HAR_ALPHA         0.035
   HAR_SIGMA_D_RATIO 0.7
-  HAR_ALLOW_EQUAL   1
-  HAR_USE_DIFF      0
-  T1                0
 
-# Accepting Points
-  ACCEPT_REGION_X   5
-  ACCEPT_REGION_Y   5
+  # Region to search for local Maxima
+  HAR_REGION_X      7
+  HAR_REGION_Y      7
+
+  # scale region by this value times sigma (negative to disable)
+  # Seems to hurt more than help
+  HAR_REGION_SCALE  -1
+  
+  # Threshold out point below this value
+  T1                400000
+  
+  # Allow points equal to center to be counted
+  HAR_ALLOW_EQUAL   0
+
+  # Threshold the Maximas based on their difference from second largest in region
+  HAR_MAX_THRESH    0.0
+  
+  # Use adaptive threshold for Harris (scaled by const/sigma), negative values disable
+  HAR_ADAPTIVE_SCALE 1.5
+
+  # Using OpenCV Harris or my custom Harris
+  # 0 uses my harris
+  # 1 uses harris with blurring before
+  # 2 uses harris with no blurring but large aperture
+    USE_OPENCV_HARRIS  0
+
+    #Window sizes for opencv harris
+    OPENCV_HAR_I_MULT 3.5
+    OPENCV_HAR_D_MULT 5
+
+    #Window sizes for gaussians in my harris
+    SIGMA_D_WINDOW    6
+    SIGMA_I_WINDOW    6
+
+  # Scale sigma0 before starting harris (trying to align scales with DoG more precisely)
+  # For my harris 1.24 seems to do well
+  HAR_SCALE_SIGMA       1.28
+
+  #Add this value to sigma after scaling
+  HAR_ADD_SIGMA         -0.09
+
+  #HAR_SCALE_SIGMA      1.24
+  #HAR_SCALE_SIGMA      1.0
+
+  # Doesnt really do anything
+  HAR_USE_DIFF      0
+
+# Accepting Points ######################################################################
+# If DoG and Harris are both enabled
+# Points only accepted if both Harris Maxima and DoG extrema are in region
+  # Search region around point
+  ACCEPT_REGION_X   7
+  ACCEPT_REGION_Y   7
+
+  # Scale multiplier  multiply the region size by the current sigma times this value
+  # To disable set to negative
+  SCALE_MULTIPLIER  0.4
+
+  # Using Harris Locations
+  # 0 - Search around DoG extrema for Harris Maxima
+  # 1 - Search around Harris Maxima for DoG extrema
   USE_HARRIS_LOCS   1
 
