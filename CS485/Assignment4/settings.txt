@@ -81,6 +81,14 @@
   DISPLAY_IN_BOUNDS_POINTS   0
   DISPLAY_MATCHING           1
 
+  CIRCLE_THICKNESS           2
+  CIRCLE_RADIUS_MULT         3.0
+  CIRCLE_COLOR               0 255 0
+
+  CROSS_THICKNESS            2
+  CROSS_SIZE                 4
+  CROSS_COLOR                0 0 255
+
 # Calculating DoG ######################################################################
 
   ENABLE_DOG        1

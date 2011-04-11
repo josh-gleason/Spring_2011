@@ -4,7 +4,6 @@
 #include <highgui.h>
 #include <cvaux.h>
 #include "readsettings.h"
-#include "log.h"
 
 using namespace std;
 using namespace cv;
@@ -454,17 +453,21 @@ void getValidPoints(const vector<Mat>& keepPoints, const vector<Mat>& matchPoint
   }
 }
 
-void drawPoints( const vector<Pixel>&, Mat&, const Settings&, Scalar=Scalar(0,255,0) );
-void drawPoints( const vector<Pixel>& points, Mat& img, const Settings &s, Scalar color )
+void drawPoints( const vector<Pixel>& points, Mat& img, const Settings &s )
 {
   int size = points.size(), i;
   for ( i = 0; i < points.size(); i++ )
   {
-    line(img,Point(points[i].p.x-2,points[i].p.y-2),Point(points[i].p.x+2,points[i].p.y+2),
-      Scalar(0,0,255),1);
-    line(img,Point(points[i].p.x+2,points[i].p.y-2),Point(points[i].p.x-2,points[i].p.y+2),
-      Scalar(0,0,255),1);
-    circle(img,(Point)points[i].p,points[i].val,color);
+    line(img,Point(points[i].p.x-s.crossSize,points[i].p.y-s.crossSize),
+      Point(points[i].p.x+s.crossSize,points[i].p.y+s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
+
+    line(img,Point(points[i].p.x+s.crossSize,points[i].p.y-s.crossSize),
+      Point(points[i].p.x-s.crossSize,points[i].p.y+s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
+
+    circle(img,(Point)points[i].p,points[i].val*s.circleMult,
+      Scalar(s.circleB,s.circleG,s.circleR),s.circleThickness);
   }
 }
 
@@ -597,7 +600,7 @@ void getMatches( const vector<Pixel>& p1, const vector<Pixel>& p2, vector<Pair>&
 }
 
 void drawMatches(Mat& display1, Mat& display2, const vector<Pixel>& points,
-  const vector<Pixel>& points2, const vector<Pair>& matches)
+  const vector<Pixel>& points2, const vector<Pair>& matches, const Settings& s)
 {
   int size = matches.size();
   int p1, p2;
@@ -606,21 +609,27 @@ void drawMatches(Mat& display1, Mat& display2, const vector<Pixel>& points,
     p1 = matches[i].a;
     p2 = matches[i].b;
 
-    line(display1,Point(points[p1].p.x-2,points[p1].p.y-2),
-      Point(points[p1].p.x+2,points[p1].p.y+2), Scalar(0,0,255),1);
+    line(display1,Point(points[p1].p.x-s.crossSize,points[p1].p.y-s.crossSize),
+      Point(points[p1].p.x+s.crossSize,points[p1].p.y+s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
 
-    line(display1,Point(points[p1].p.x-2,points[p1].p.y+2),
-      Point(points[p1].p.x+2,points[p1].p.y-2), Scalar(0,0,255),1);
+    line(display1,Point(points[p1].p.x-s.crossSize,points[p1].p.y+s.crossSize),
+      Point(points[p1].p.x+s.crossSize,points[p1].p.y-s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
 
-    circle(display1,points[p1].p,points[p1].val,Scalar(0,255,0));
+    circle(display1, points[p1].p, points[p1].val*s.circleMult,
+      Scalar(s.circleB,s.circleG,s.circleR), s.circleThickness);
     
-    line(display2,Point(points2[p2].p.x-2,points2[p2].p.y-2),
-      Point(points2[p2].p.x+2,points2[p2].p.y+2), Scalar(0,0,255),1);
+    line(display2,Point(points2[p2].p.x-s.crossSize,points2[p2].p.y-s.crossSize),
+      Point(points2[p2].p.x+s.crossSize,points2[p2].p.y+s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
 
-    line(display2,Point(points2[p2].p.x-2,points2[p2].p.y+2),
-      Point(points2[p2].p.x+2,points2[p2].p.y-2), Scalar(0,0,255),1);
+    line(display2,Point(points2[p2].p.x-s.crossSize,points2[p2].p.y+s.crossSize),
+      Point(points2[p2].p.x+s.crossSize,points2[p2].p.y-s.crossSize),
+      Scalar(s.crossB,s.crossG,s.crossR),s.crossThickness);
 
-    circle(display2,points2[p2].p,points2[p2].val,Scalar(0,255,0));
+    circle(display2, points2[p2].p, points2[p2].val*s.circleMult,
+      Scalar(s.circleB,s.circleG,s.circleR), s.circleThickness);
   }
 }
 
@@ -726,9 +735,9 @@ int main(int argc, char *argv[])
     display1 = imread( s.imagename,1 );
     display2 = imread( s.image2name,1 );
     if ( s.boundsCheck )
-      drawMatches(display1, display2, points1inBounds, points2inBounds, matches);
+      drawMatches(display1, display2, points1inBounds, points2inBounds, matches, s);
     else
-      drawMatches(display1, display2, points1, points2, matches);
+      drawMatches(display1, display2, points1, points2, matches, s);
     imshow("Image 1 Matches",display1);
     imshow("Image 2 Matches",display2);
     waitKey(0);

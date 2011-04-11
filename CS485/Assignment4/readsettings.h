@@ -132,7 +132,18 @@ struct Settings
             sin >> harSigmaIWin;
           else if ( param == "USE_SHORTEST_DIST" )
             sin >> shortestDist;
-
+          else if ( param == "CIRCLE_THICKNESS" )
+            sin >> circleThickness;
+          else if ( param == "CIRCLE_RADIUS_MULT" )
+            sin >> circleMult;
+          else if ( param == "CROSS_THICKNESS" )
+            sin >> crossThickness;
+          else if ( param == "CROSS_SIZE" )
+            sin >> crossSize;
+          else if ( param == "CROSS_COLOR" )
+            sin >> crossB >> crossG >> crossR;
+          else if ( param == "CIRCLE_COLOR" )
+            sin >> circleB >> circleG >> circleR;
           
           ///////////////////////////////////////////////////////////////
         }
@@ -147,6 +158,9 @@ struct Settings
 
   string imagename, image2name, hfilename;
   string saveFilename;
+  int circleThickness, crossThickness, crossSize;
+  float circleMult, crossB, crossG, crossR;
+  float circleB, circleG, circleR;
   bool saveFile;
   bool useMax;
   bool doGAllowEqual;
