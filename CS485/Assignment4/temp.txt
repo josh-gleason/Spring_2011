@@ -204,3 +204,10 @@
   # 1 - Search around Harris Maxima for DoG extrema
   USE_HARRIS_LOCS   1
 
+
+IMAGE graf/img1.ppm
+IMAGE_COMPARE graf/img5.ppm
+HFILE graf/H1to5p
+T1 1.6e+07
+T2 15
+

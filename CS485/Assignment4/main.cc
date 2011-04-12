@@ -644,7 +644,7 @@ void drawMatches(Mat& display1, Mat& display2, const vector<Pixel>& points,
 
 int main(int argc, char *argv[])
 {
-  if ( argc < 2 )
+  if ( argc < 3 )
   {
     cout << "Please input the settings file" << endl;
     return -1;
@@ -654,9 +654,10 @@ int main(int argc, char *argv[])
 
   Settings s(argv[1]);
 
+  ofstream fout(argv[2],ios::app);
+
   // print out k
-  cout << "K: " << s.k << endl;
-  cout << "Sigma_Max: " << s.sigmaMax << endl;
+  fout << s.t1 << ' ' << s.t2 << ' ';
 
   Mat img8bit = imread(s.imagename,0);
   Mat img, img2, H;
@@ -671,9 +672,6 @@ int main(int argc, char *argv[])
   // detect interest points in both images
   findInterestPoints(img, points1, s);
   findInterestPoints(img2, points2, s);
-  
-  cout << "Image 1 Interest Points detected: " << points1.size() << endl;
-  cout << "Image 2 Interest Points detected: " << points2.size() << endl << endl;
   
   // mark points
   if ( s.showOrigPoints )
@@ -713,8 +711,8 @@ int main(int argc, char *argv[])
       
     }
       
-    cout << "Image 1 Interest Points in bounds: " << points1inBounds.size() << endl;
-    cout << "Image 2 Interest Points in bounds: " << points2inBounds.size() << endl << endl;
+    fout << points1inBounds.size() << ' ';
+    fout << points2inBounds.size() << ' ';
       
     // transform points from Image 1 to Image 2 for comparison
     transform(points1inBounds,points1to2,H);
@@ -722,8 +720,8 @@ int main(int argc, char *argv[])
     // count matches (matches: ordered pairs of matching indecies) 
     getMatches(points1to2,points2inBounds,matches,s);
   
-    cout << "Matching Points: " << matches.size() << endl;
-    cout << "Repeatability: " << matches.size()*100.0 / min(points1inBounds.size(),points2inBounds.size()) << endl;
+    fout << matches.size() << ' ';
+    fout << matches.size()*100.0 / min(points1inBounds.size(),points2inBounds.size()) << ' ';
   }
   else    // don't check bounds (not recomended)
   {
@@ -733,9 +731,8 @@ int main(int argc, char *argv[])
     // count matches (matches: ordered pairs of matching indecies)
     getMatches(points1to2, points2, matches, s);
 
-    cout << "Matching Points: " << matches.size() << endl;
-    cout << "Repeatability: " << matches.size()*100.0 / min(points1.size(),points2.size())
-         << endl << endl;
+    fout << matches.size() << ' ';
+    fout << matches.size()*100.0 / min(points1.size(),points2.size()) << ' ';
   }
 
   if ( s.showMatching )
@@ -753,6 +750,9 @@ int main(int argc, char *argv[])
     cvDestroyWindow("Image 1 Matches");
     cvDestroyWindow("Image 2 Matches");
   }
+
+  fout << endl;
+  fout.close();
 
   return 0;
 }
