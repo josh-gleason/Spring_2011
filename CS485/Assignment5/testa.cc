@@ -11,6 +11,7 @@ using namespace std;
 using namespace cv;
 
 #define USE_MAHALANOBIS
+//#define WRITE_EXTRAS
 
 bool loadEigenfaces( string filename, vector<Mat>& eFaces, Mat& eValues, vector<Mat>& coeffs,
   vector<string>& images, Mat& mean, Size& imgSize )
@@ -75,13 +76,13 @@ void my_swap(T& a, T& b)
 }
 
 // complicated but fast for relatively small N (doesn't need to sort entire list)
-void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues, int N, vector<int>& matching)
+void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues, int N, vector<int>& matching, vector<double>& matchValues)
 {
-  vector<double> matchValues(N); // holds the match score
+  matchValues.resize(N,0);    // holds the match score
   matching.resize(N,-1);      // holds the index
 
   int setSize = coeffs.size(), i, j, k, val1;
-  double score, val2;
+  double e, val2;
   Mat diff, t;
 
   for ( i = 0; i < setSize; i++ )
@@ -91,14 +92,14 @@ void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues
     diff = input - coeffs[i];
     diff = diff.mul(diff);
     diff = diff.mul(1.0/eValues);
-    score = norm(diff,NORM_L1);
+    e = norm(diff,NORM_L1);
 #else   // use L2 norm
-    score = norm(input,coeffs[i],NORM_L2);
+    e = norm(input,coeffs[i],NORM_L2);
 #endif  // USE_MAHALANOBIS
     
     for ( j = 0; j < N; j++ )
     {
-      if ( matching[j] < 0 || score < matchValues[j] )
+      if ( matching[j] < 0 || e < matchValues[j] )
         break;
     }
 
@@ -107,12 +108,12 @@ void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues
       if ( matching[j] < 0 )  // special case
       {
         matching[j] = i;
-        matchValues[j] = score;
+        matchValues[j] = e;
       }
       else
       {
         val1 = i;
-        val2 = score;
+        val2 = e;
         for ( k = j; k < N; k++ )
         {
           if ( matching[k] < 0 ) // unfilled position, place here
@@ -134,12 +135,13 @@ void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues
   }
 }
 
-bool matchTest(long ID, const vector<int>& indexMatches, const vector<long>& trainIDs)
+int matchTest(long ID, const vector<int>& indexMatches, const vector<long>& trainIDs)
 {
+  int count = 0;
   for ( int i = 0; i < indexMatches.size(); i++ )
     if ( ID == trainIDs[indexMatches[i]] )
-      return true;
-  return false;
+      count++;
+  return count;
 }
 
 // returns the ID based on file path
@@ -175,9 +177,12 @@ void buildIDs(const vector<string>& images, vector<long>& idList)
     idList[i] = getID(images[i]);
 }
 
+// argv[1] : training data
+// argv[2] : test image file
+// argv[3] : N
 int main(int argc, char *argv[])
 {
-  if ( argc < 2 )
+  if ( argc < 4 )
     return -1;
 
   int N = atoi(argv[3]);
@@ -189,7 +194,8 @@ int main(int argc, char *argv[])
   vector<long> trainIDs, testIDs;
   vector<vector<int> > trainMatches;
   int trainCount, testCount, i ,j;
-  vector<bool> matchValue;
+  vector<int> matchValue;
+  vector<vector<double> > topNError;
 
   // load training data
   if ( !loadEigenfaces(argv[1],eFaces,lambda,trainCoeffs,trainImgs,mean,imgSize) )
@@ -207,7 +213,7 @@ int main(int argc, char *argv[])
     readImagesFile(argv[2], testImgs, tempSize);
     if ( tempSize != imgSize )
     {
-      cout << "Error: Training and Testing images of different dimensions" << endl;
+      cout << "Error: Training and Testing images have different dimensions" << endl;
       return -1;
     }
   }
@@ -221,6 +227,7 @@ int main(int argc, char *argv[])
   testCoeffs.resize(testCount);
   trainMatches.resize(testCount);
   matchValue.resize(testCount);
+  topNError.resize(testCount);
 
   int matchCount = 0;
 
@@ -230,19 +237,96 @@ int main(int argc, char *argv[])
     static Mat input;
     input = imread(testImgs[i],0);
     projectFace(input, eFaces, mean, testCoeffs[i]);
-    topNMatches(testCoeffs[i], trainCoeffs, lambda, N, trainMatches[i]);
+    topNMatches(testCoeffs[i], trainCoeffs, lambda, N, trainMatches[i], topNError[i]);
     
     matchValue[i] = matchTest(testIDs[i], trainMatches[i], trainIDs);
-    if ( matchValue[i] )
+    if ( matchValue[i] > 0 )
       matchCount++;
-
-    // TODO : temporary
-    // Mat back;
-    // backprojectFace(testCoeffs[i], eFaces, mean, imgSize, back, CV_8UC1);
-    // imshow("a",back);
-    // imshow("b",input);
-    // waitKey(0);
   }
+
+#ifdef WRITE_EXTRAS
+  int max = matchValue[0], count=0;
+  int usedIDs[] = {0,0,0,0,0,0};
+  for ( i = 0; i < testCount; i++ )
+    if ( matchValue[i] > max )
+      max = matchValue[i];
+
+  // write best 3 matches with top N matches ensuring 3 different IDs
+  for ( i = max; i >= 0 && count < 3; i-- )
+    for ( j = 0; j < testCount && count < 3; j++ )
+      if ( matchValue[j] == i &&
+           usedIDs[0] != testIDs[j] && 
+           usedIDs[1] != testIDs[j])
+      {
+        usedIDs[count] = testIDs[j];
+        cout << i << endl;
+        count++;
+        // save image j from test set with best matches
+        string path;
+        {
+          ostringstream sout;
+          string a = argv[1];
+          sout << "results/correct" << a[a.length()-2] << a[a.length()-1] << '/'
+               << count << "/";
+          path = sout.str();
+        }
+        Mat tImg;
+        backprojectFace(testCoeffs[j],eFaces,mean,imgSize,tImg,CV_8UC1);
+        imwrite(path+(string)"testImg.jpg",tImg);
+        
+        // write top N matches
+        for ( int k = 0; k < N; k++ )
+        {
+          ostringstream sout;
+          sout << path << setfill('0') << setw(2) << k+1 << '_'
+               << setw(4) << topNError[j][k]*100000;
+          if ( testIDs[j] == trainIDs[trainMatches[j][k]] )
+            sout << "_c.jpg";
+          else
+            sout << "_i.jpg";
+          backprojectFace(trainCoeffs[trainMatches[j][k]],eFaces,mean,imgSize,tImg,CV_8UC1);
+          imwrite(sout.str(),tImg);
+        }
+      }
+
+  // write 3 non-matching with top N matches ensuring all have a different ID
+  for ( i = 0; i < testCount && count < 6; i++ )
+  {
+    if ( matchValue[i] <= 0 &&
+      usedIDs[0] != testIDs[i] &&
+      usedIDs[1] != testIDs[i] &&
+      usedIDs[2] != testIDs[i] &&
+      usedIDs[3] != testIDs[i] &&
+      usedIDs[4] != testIDs[i] )
+    {
+      usedIDs[count] = testIDs[i];
+      count++;
+      // save image i from test set with best matches
+      string path;
+      {
+        ostringstream sout;
+        string a = argv[1];
+        sout << "results/incorrect" << a[a.length()-2] << a[a.length()-1] << '/'
+             << count-3 << "/";
+        path = sout.str();
+      }
+      Mat tImg;
+      backprojectFace(testCoeffs[i],eFaces,mean,imgSize,tImg,CV_8UC1);
+      imwrite(path+(string)"testImg.jpg",tImg);
+
+      for ( int k = 0; k < N; k++ )
+      {
+        ostringstream sout;
+        sout << path << setfill('0') << setw(2) << k+1 << '_'
+             << setw(4) << topNError[i][k]*100000 << "_" << trainIDs[trainMatches[i][k]]
+             << ".jpg";
+        backprojectFace(trainCoeffs[trainMatches[i][k]],eFaces,mean,imgSize,tImg,CV_8UC1);
+        imwrite(sout.str(),tImg);
+      }
+    }
+  }
+
+#endif
 
   cout << (float)matchCount / testCount << endl;
 
