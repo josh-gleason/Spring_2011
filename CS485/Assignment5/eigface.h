@@ -93,10 +93,10 @@ void buildA(const Mat& mean, const vector<string>& img, Mat& A)
 }
 
 void projectFace(const Mat& image, const vector<Mat>& eFaces, const Mat& mean,
-  vector<double>& coeff)
+  Mat& coeff)
 {
   int dim = eFaces.size(), i;
-  coeff.resize(dim);
+  coeff = Mat(dim,1,CV_32FC1);
 
   Mat imgVector;
 
@@ -111,13 +111,13 @@ void projectFace(const Mat& image, const vector<Mat>& eFaces, const Mat& mean,
 
     t2=t1*imgVector;
 
-    coeff[i] = t2.at<float>(0,0);
+    coeff.at<float>(i,0) = t2.at<float>(0,0);
   }
 }
 
-void backprojectFace(const vector<double>&, const vector<Mat>&, const Mat&, Size&, Mat&,
+void backprojectFace(const Mat&, const vector<Mat>&, const Mat&, Size&, Mat&,
   int outputType=CV_32FC1);
-void backprojectFace(const vector<double>& coeff, const vector<Mat>& eFaces,
+void backprojectFace(const Mat& coeff, const vector<Mat>& eFaces,
   const Mat& meanFace, Size& imgSize, Mat& image, int outputType)
 {
   int dim = eFaces.size(), i;
@@ -125,7 +125,7 @@ void backprojectFace(const vector<double>& coeff, const vector<Mat>& eFaces,
   Mat linImg = meanFace.clone();
 
   for ( i = 0; i < dim; i++ )
-    linImg += eFaces[i]*coeff[i];
+    linImg += eFaces[i]*coeff.at<float>(i,0);
   
   delinearizeImage(linImg, image, imgSize, outputType);
 }

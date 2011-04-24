@@ -33,12 +33,12 @@ int findK(const Mat& eigValues, float thresh)
   return eigValues.rows;
 }
 
-void saveEigenfaces( string filename, const vector<Mat>& eFaces,
-  const vector<vector<double> >& coeffs, const vector<string>& images,
-  const Mat& mean, const Size& imgSize )
+bool saveEigenfaces( string filename, const vector<Mat>& eFaces, const Mat& eValues,
+  const vector<Mat>& coeffs, const vector<string>& images, const Mat& mean,
+  const Size& imgSize)
 {
   ofstream fout(filename.c_str());
-  
+
   int pixels = imgSize.height * imgSize.width,
       dim = eFaces.size(),
       imgCount = images.size(),
@@ -52,6 +52,11 @@ void saveEigenfaces( string filename, const vector<Mat>& eFaces,
   // write mean face
   for ( i = 0; i < pixels; i++ )
     fout << ' ' << mean.at<float>(i,0);
+  fout << endl;
+  
+  // write eigan values
+  for ( i = 0; i < dim; i++ )
+    fout << ' ' << eValues.at<float>(i,0);
   fout << endl;
 
   // write eigenfaces
@@ -67,7 +72,7 @@ void saveEigenfaces( string filename, const vector<Mat>& eFaces,
   {
     fout << ' ' << images[i];
     for ( j = 0; j < dim; j++ )
-      fout << ' ' << coeffs[i][j];
+      fout << ' ' << coeffs[i].at<float>(j,0);
     fout << endl;
   }
 
@@ -170,19 +175,19 @@ int main(int argc, char *argv[])
   // imshow("backproj",back);
   // waitKey(0);
 
-  // TODO : calculate coefficients for all images
-  vector<vector<double> > coeffs;
+  // calculate coefficients for all images
+  vector<Mat> coeffs;
 
   for ( i = 0; i < imgList.size(); i++ )
   {
     Mat image = imread(imgList[i],0);
-    vector<double> m;
+    Mat m;
     projectFace(image,u,mean,m);
-    coeffs.push_back(m);
+    coeffs.push_back(m.clone());
   }
   
   // save results to file
-  saveEigenfaces(argv[3],u,coeffs,imgList,mean,imgSize);
+  saveEigenfaces(argv[3],u,lambda,coeffs,imgList,mean,imgSize);
 
   // exit
   return 0;
