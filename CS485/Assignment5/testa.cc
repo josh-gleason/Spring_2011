@@ -11,7 +11,6 @@
 using namespace std;
 using namespace cv;
 
-#define USE_MAHALANOBIS
 //#define WRITE_EXTRAS
 
 // argv[1] : training data

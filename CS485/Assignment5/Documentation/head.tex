@@ -1,0 +1,97 @@
+\documentclass[12pt,a4paper,oneside]{article}
+\special{papersize=8.5in,11in}
+
+\setlength{\textwidth}{6.5in} %1 in margins
+\setlength{\textheight}{9.75in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\marginparwidth}{1in}
+\setlength{\footskip}{0.25in}
+\setlength{\marginparsep}{0in}
+
+\renewcommand{\abstractname}{}
+
+%\usepackage{array}
+%\usepackage{amssymb,amsmath}
+%\usepackage{multirow}
+\usepackage{subfigure}
+\usepackage{graphicx}
+%\usepackage{graphics}
+\usepackage{color}
+%\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{listings}
+%\usepackage{courier}
+%\usepackage{cite}
+%\usepackage[section]{placeins}
+\usepackage[pdftex,bookmarks=true,colorlinks=true,linkcolor=blue]{hyperref}
+%\usepackage[all]{hypcap}
+
+\lstset{
+  basicstyle=\scriptsize\ttfamily, % Standardschrift
+    %numbers=left,               % Ort der Zeilennummern
+    numberstyle=\tiny,          % Stil der Zeilennummern
+    %stepnumber=2,               % Abstand zwischen den Zeilennummern
+    numbersep=1pt,              % Abstand der Nummern zum Text
+    tabsize=2,                  % Groesse von Tabs
+    extendedchars=true,         %
+    breaklines=true,            % Zeilen werden Umgebrochen
+    keywordstyle=\color{red},
+    frame=b,         
+    %        keywordstyle=[1]\textbf,    % Stil der Keywords
+      %        keywordstyle=[2]\textbf,    %
+      %        keywordstyle=[3]\textbf,    %
+      %        keywordstyle=[4]\textbf,   \sqrt{\sqrt{}} %
+      stringstyle=\color{white}\ttfamily, % Farbe der String
+      showspaces=false,           % Leerzeichen anzeigen ?
+      showtabs=false,             % Tabs anzeigen ?
+      xleftmargin=17pt,
+    framexleftmargin=17pt,
+    framexrightmargin=5pt,
+    framexbottommargin=4pt,
+    %backgroundcolor=\color{lightgray},
+    showstringspaces=false      % Leerzeichen in Strings anzeigen ?        
+}
+
+\lstloadlanguages{% Check Dokumentation for further languages ...
+  %[Visual]Basic
+    %Pascal
+    %C
+    C++
+    %XML
+    %HTML
+    %Java
+}
+
+%\DeclareCaptionFont{blue}{\color{blue}} 
+
+%\captionsetup[lstlisting]{singlelinecheck=false, labelfont={blue}, textfont={blue}}
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\makeatletter
+\renewcommand\l@section[2]{%
+  \ifnum \c@tocdepth >\z@
+    \addpenalty\@secpenalty
+    \addvspace{1.0em \@plus\p@}%
+    \setlength\@tempdima{1.5em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      \leavevmode \bfseries
+      \advance\leftskip\@tempdima
+      \hskip -\leftskip
+      #1\nobreak\
+      \leaders\hbox{$\m@th\mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$}
+     \hfil \nobreak\hb@xt@\@pnumwidth{\hss #2}\par
+    \endgroup
+  \fi}
+\makeatother
+

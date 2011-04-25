@@ -7,3 +7,7 @@ traindata
 train
 testa
 testb
+results/*_rez/*correct[8-9][0-5]/[1-3]/test.py
+results/*_rez/*correct[8-9][0-5]/[1-3]/[1-9].jpg
+results/*_rez/*correct[8-9][0-5]/[1-3]/10.jpg
+
