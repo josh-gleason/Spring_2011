@@ -66,7 +66,8 @@ void my_swap(T& a, T& b)
 }
 
 // complicated but fast for relatively small N (doesn't need to sort entire list)
-void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues, int N, vector<int>& matching, vector<double>& matchValues)
+void topNMatches(const Mat& input, const vector<Mat>& coeffs, const Mat& eValues, int N,
+  vector<int>& matching, vector<double>& matchValues)
 {
   matchValues.resize(N,0);    // holds the match score
   matching.resize(N,-1);      // holds the index
