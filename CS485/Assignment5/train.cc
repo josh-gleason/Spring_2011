@@ -165,16 +165,6 @@ int main(int argc, char *argv[])
   }
 #endif // WRITE_EXTRAS
 
-  // TODO : Temporary testing
-  // Mat image = imread(imgList[0],0), back;
-  // // project face to eigenspace (returns coefficients)
-  // projectFace(image, u, mean, w);
-  // // back project face from eigenspace
-  // backprojectFace(w, u, mean, imgSize, back, CV_8UC1);
-  // imshow("orig",image);
-  // imshow("backproj",back);
-  // waitKey(0);
-
   // calculate coefficients for all images
   vector<Mat> coeffs;
 
